@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VADER Sentiment Chat & Analytics Dashboard</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              900: '#14532d',
+            },
+            p1: {
+              light: '#3b82f6',
+              DEFAULT: '#2563eb',
+              dark: '#1d4ed8'
+            },
+            p2: {
+              light: '#ec4899',
+              DEFAULT: '#db2777',
+              dark: '#be185d'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Fonts (Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-xl shadow-lg shadow-indigo-500/20">
+          <i data-lucide="brain-circuit" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+            VADER Sentiment Lab
+          </h1>
+          <p class="text-xs text-slate-400">Dual Chat & Sentiment Frequency Analyzer</p>
+        </div>
+      </div>
+
+      <!-- Action Controls -->
+      <div class="flex items-center space-x-2">
+        <button id="btn-export-txt" class="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition">
+          <i data-lucide="download" class="w-4 h-4 text-slate-400"></i>
+          <span class="hidden sm:inline">Export Transcript</span>
+        </button>
+        <button id="btn-clear-chat" class="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg border border-rose-500/20 transition">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Reset All</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT COLUMN: Chat Simulator (5 cols) -->
+    <section class="lg:col-span-5 flex flex-col bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden h-[680px]">
+      
+      <!-- Chat Header / Controls -->
+      <div class="p-4 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <h2 class="font-semibold text-sm text-slate-200">Interactive Chat Simulator</h2>
+        </div>
+
+        <!-- Speaker Switcher Toggle -->
+        <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center space-x-1 text-xs">
+          <button id="toggle-p1" class="speaker-toggle px-3 py-1 rounded-lg font-medium transition flex items-center space-x-1.5 bg-blue-600 text-white shadow">
+            <span class="w-2 h-2 rounded-full bg-blue-200"></span>
+            <span>Person 1</span>
+          </button>
+          <button id="toggle-p2" class="speaker-toggle px-3 py-1 rounded-lg font-medium transition flex items-center space-x-1.5 text-slate-400 hover:text-slate-200">
+            <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+            <span>Person 2</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat Feed -->
+      <div id="chat-feed" class="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-950/40">
+        <!-- Messages render dynamically here -->
+        <div id="empty-chat-state" class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500">
+          <div class="w-12 h-12 rounded-full bg-slate-800/80 flex items-center justify-center mb-3">
+            <i data-lucide="message-square" class="w-6 h-6 text-slate-400"></i>
+          </div>
+          <p class="text-sm font-medium text-slate-400">No messages yet</p>
+          <p class="text-xs text-slate-500 max-w-xs mt-1">Start typing as Person 1 or Person 2 to compute live VADER sentiment scores!</p>
+        </div>
+      </div>
+
+      <!-- Quick Emoji Picker Bar -->
+      <div class="px-4 py-2 border-t border-slate-800/60 bg-slate-900/80 flex items-center gap-1.5 overflow-x-auto text-sm">
+        <span class="text-xs text-slate-500 font-medium mr-1">Quick:</span>
+        <button class="emoji-btn hover:bg-slate-800 p-1.5 rounded-lg transition">😊</button>
+        <button class="emoji-btn hover:bg-slate-800 p-1.5 rounded-lg transition">😍</button>
+        <button class="emoji-btn hover:bg-slate-800 p-1.5 rounded-lg transition">🔥</button>
+        <button class="emoji-btn hover:bg-slate-800 p-1.5 rounded-lg transition">😢</button>
+        <button class="emoji-btn hover:bg-slate-800 p-1.5 rounded-lg transition">😡</button>
+        <button class="emoji-btn hover:bg-slate-800 p-1.5 rounded-lg transition">🎉</button>
+        <button class="emoji-btn hover:bg-slate-800 p-1.5 rounded-lg transition">👍</button>
+      </div>
+
+      <!-- Chat Input Form -->
+      <form id="chat-form" class="p-4 border-t border-slate-800 bg-slate-900 flex items-center space-x-2">
+        <input 
+          type="text" 
+          id="chat-input"
+          placeholder="Type message as Person 1..." 
+          class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+          autocomplete="off"
+        />
+        <button 
+          type="submit" 
+          id="send-btn"
+          class="bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl font-medium transition flex items-center justify-center shadow-lg shadow-blue-600/20"
+        >
+          <i data-lucide="send" class="w-5 h-5"></i>
+        </button>
+      </form>
+    </section>
+
+    <!-- RIGHT COLUMN: Analytics Dashboard (7 cols) -->
+    <section class="lg:col-span-7 space-y-6 flex flex-col">
+
+      <!-- Top Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Total Messages -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-center justify-between text-slate-400">
+            <span class="text-xs font-semibold uppercase tracking-wider">Total Messages</span>
+            <i data-lucide="messages-square" class="w-4 h-4 text-indigo-400"></i>
+          </div>
+          <div class="mt-3">
+            <span id="stat-total-messages" class="text-2xl font-bold text-white">0</span>
+            <span class="text-xs text-slate-500 ml-1">exchanged</span>
+          </div>
+          <div class="mt-2 pt-2 border-t border-slate-800/80 flex justify-between text-[11px] text-slate-400">
+            <span>P1: <strong id="stat-p1-count" class="text-blue-400">0</strong></span>
+            <span>P2: <strong id="stat-p2-count" class="text-pink-400">0</strong></span>
+          </div>
+        </div>
+
+        <!-- Person 1 Sentiment -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-400">
+            <span class="text-xs font-semibold uppercase tracking-wider text-blue-400">P1 Sentiment</span>
+            <i data-lucide="user" class="w-4 h-4 text-blue-400"></i>
+          </div>
+          <div class="mt-3 flex items-baseline justify-between">
+            <span id="stat-p1-sentiment" class="text-xl font-bold text-slate-300">Neutral</span>
+            <span id="stat-p1-score" class="text-sm font-mono font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400">0.000</span>
+          </div>
+          <div class="mt-2 pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 flex justify-between">
+            <span class="text-emerald-400">+<span id="stat-p1-pos">0</span></span>
+            <span class="text-rose-400">-<span id="stat-p1-neg">0</span></span>
+            <span class="text-slate-400">~<span id="stat-p1-neu">0</span></span>
+          </div>
+        </div>
+
+        <!-- Person 2 Sentiment -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-slate-400">
+            <span class="text-xs font-semibold uppercase tracking-wider text-pink-400">P2 Sentiment</span>
+            <i data-lucide="user" class="w-4 h-4 text-pink-400"></i>
+          </div>
+          <div class="mt-3 flex items-baseline justify-between">
+            <span id="stat-p2-sentiment" class="text-xl font-bold text-slate-300">Neutral</span>
+            <span id="stat-p2-score" class="text-sm font-mono font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400">0.000</span>
+          </div>
+          <div class="mt-2 pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 flex justify-between">
+            <span class="text-emerald-400">+<span id="stat-p2-pos">0</span></span>
+            <span class="text-rose-400">-<span id="stat-p2-neg">0</span></span>
+            <span class="text-slate-400">~<span id="stat-p2-neu">0</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Frequency Analytics Tabs & Content -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex-1 flex flex-col justify-between space-y-6">
+        
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h3 class="font-semibold text-sm text-slate-200 flex items-center gap-2">
+            <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-400"></i>
+            Lexicon & Frequency Statistics
+          </h3>
+          <span class="text-xs text-slate-500">Live Word & Emoji Parsing</span>
+        </div>
+
+        <!-- Top Words Grid -->
+        <div>
+          <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+            <span>Most Used Words</span>
+            <i data-lucide="type" class="w-3.5 h-3.5"></i>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- P1 Top Word -->
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+              <span class="text-[10px] text-blue-400 font-medium block">Person 1</span>
+              <p id="top-word-p1" class="text-sm font-semibold text-slate-200 truncate mt-1">None</p>
+              <span id="top-word-p1-count" class="text-xs text-slate-500">0 times</span>
+            </div>
+            <!-- P2 Top Word -->
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+              <span class="text-[10px] text-pink-400 font-medium block">Person 2</span>
+              <p id="top-word-p2" class="text-sm font-semibold text-slate-200 truncate mt-1">None</p>
+              <span id="top-word-p2-count" class="text-xs text-slate-500">0 times</span>
+            </div>
+            <!-- Overall Top Word -->
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 border-indigo-500/20">
+              <span class="text-[10px] text-indigo-400 font-medium block">Combined Overall</span>
+              <p id="top-word-all" class="text-sm font-semibold text-slate-200 truncate mt-1">None</p>
+              <span id="top-word-all-count" class="text-xs text-slate-500">0 times</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Emojis Grid -->
+        <div>
+          <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+            <span>Most Used Emojis</span>
+            <i data-lucide="smile" class="w-3.5 h-3.5"></i>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- P1 Top Emoji -->
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+              <span class="text-[10px] text-blue-400 font-medium block">Person 1</span>
+              <div class="flex items-center space-x-2 mt-1">
+                <span id="top-emoji-p1" class="text-xl">None</span>
+                <span id="top-emoji-p1-count" class="text-xs text-slate-500">(0)</span>
+              </div>
+            </div>
+            <!-- P2 Top Emoji -->
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+              <span class="text-[10px] text-pink-400 font-medium block">Person 2</span>
+              <div class="flex items-center space-x-2 mt-1">
+                <span id="top-emoji-p2" class="text-xl">None</span>
+                <span id="top-emoji-p2-count" class="text-xs text-slate-500">(0)</span>
+              </div>
+            </div>
+            <!-- Overall Top Emoji -->
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 border-indigo-500/20">
+              <span class="text-[10px] text-indigo-400 font-medium block">Combined Overall</span>
+              <div class="flex items-center space-x-2 mt-1">
+                <span id="top-emoji-all" class="text-xl">None</span>
+                <span id="top-emoji-all-count" class="text-xs text-slate-500">(0)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Transcript Preview Accordion -->
+        <div class="border-t border-slate-800 pt-4">
+          <details class="group">
+            <summary class="flex items-center justify-between text-xs font-medium text-slate-400 cursor-pointer hover:text-slate-200">
+              <span>View Raw Generated Transcript Output</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 transition group-open:rotate-180"></i>
+            </summary>
+            <textarea id="raw-transcript-view" readonly class="mt-3 w-full h-32 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-300 resize-none focus:outline-none">
+Transcript and statistics preview will appear here...
+            </textarea>
+          </details>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /* Lightweight Client-side VADER Lexicon Implementation */
+    const VADER_LEXICON = {// Paste these inside your VADER_LEXICON object in index.html:
+
+      // --- High Positive / Praise ---
+      "ate": 2.7,          // "She ate that up"
+      "slay": 3.0,         // "Slay!"
+      "fire": 2.8,         // "That track is fire"
+      "goated": 3.2,       // "GOAT status"
+      "bussin": 2.8,       // "This food is bussin"
+      "based": 2.0,        // "Super based opinion"
+      "valid": 1.8,        // "That's valid"
+      "w": 2.2,            // "Big W"
+      "peak": 2.0,         // "Peak cinema"
+      "aura": 1.5,         // "Infinite aura"
+
+      // --- High Negative / Disapproval ---
+      "l": -2.2,           // "Big L"
+      "mid": -2.0,         // "That movie was mid"
+      "cringe": -2.5,      // "So cringe"
+      "cooked": -2.8,      // "Bro is cooked"
+      "cap": -2.0,         // "That's cap"
+      "flop": -2.4,        // "Total flop"
+      "cheeks": -2.0,      // "Game is cheeks"
+      "sus": -1.8,         // "Super sus"
+      "unhinged": -2.0,    // "Unhinged behavior"
+      "glazing": -1.8,     // "Stop glazing"
+
+      // --- Modern Abbreviations & Slang ---
+      "fr": 1.2,           // "For real"
+      "ngl": 0.4,          // "Not gonna lie"
+      "tbh": 0.4,          // "To be honest"
+      "iykyk": 1.0,        // "If you know you know"
+      "smh": -1.8,         // "Shaking my head"
+      "tf": -2.0,           // "What the..."
+      // --- Cooking / Cooked Contexts ---
+      "cooking": 2.5,        // "He is cooking right now" (Doing great)
+      "cooked": -2.8,        // "Bro is cooked" / "Got cooked" (Doomed/Ruined)
+      "cook": 1.2,           // "Let him cook" (Give him space to excel)
+
+      // --- Other Context Swaps & Modern Slang ---
+      "ate": 2.8,            // "She ate that" (+ve) vs "eaten"
+      "slayed": 3.0,         // "She slayed" (+ve)
+      "cold": 2.2,           // "That clip was cold" (+ve / impressive)
+      "sick": 2.0,           // "That trick was sick" (+ve)
+      "dirty": 1.8,          // "That crossover was dirty" (+ve)
+      "nasty": 1.8,          // "Nasty dunk" (+ve)
+      "tough": 2.2,          // "That fit is tough" (+ve)
+
+      // --- Disapproval / Defeat ---
+      "washed": -2.2,        // "He's washed" (-ve / past his prime)
+      "cooked": -2.8,        // "We are cooked" (-ve)
+      "fraud": -2.5,         // "Total fraud" (-ve)
+      "ghosted": -2.0,       // "Got ghosted" (-ve)
+      "rent-free": -1.5,     // "Living rent-free" (-ve / obsessed)
+      "salty": -1.8,         // "Why are you salty?" (-ve)
+      "ratio": -2.2,         // "Get ratioed" (-ve)
+      "brick": -2.0,          // "Threw a brick" (-ve / missed badly)
+      'great': 3.1, 'good': 1.9,'yo':0.8, 'awesome': 3.1, 'amazing': 2.8, 'love': 3.2,
+      'excellent': 2.7, 'happy': 2.7, 'best': 3.2, 'nice': 1.8, 'fantastic': 2.6,
+      'wonderful': 2.7, 'enjoy': 2.2, 'perfect': 2.7, 'thanks': 1.9, 'thank': 1.8,
+      'bad': -2.5, 'terrible': -3.0, 'hate': -2.7, 'horrible': -2.5, 'awful': -2.0,
+      'sad': -2.1, 'worst': -3.1, 'disappointed': -2.3, 'angry': -2.3, 'poor': -1.4,
+      'boring': -1.3, 'annoying': -1.9, 'fail': -2.5, 'useless': -2.1, 'pain': -2.3,
+      // Emoji lexicon approximations
+      '😊': 2.0, '😍': 3.0, '🔥': 2.2, '🎉': 2.5, '👍': 1.8,
+      '😢': -2.2, '😡': -3.0, '👎': -1.8, '💩': -2.0
+    };
+
+    // Calculate VADER Sentiment Compound Score
+    function calculateVaderScore(message) {
+      if (!message || message.trim() === '') return 0;
+      
+      const words = message.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(/\s+/);
+      let totalScore = 0;
+
+      words.forEach(word => {
+        if (VADER_LEXICON[word]) {
+          totalScore += VADER_LEXICON[word];
+        }
+      });
+
+      // Also check emojis directly in message
+      for (const char of message) {
+        if (VADER_LEXICON[char]) {
+          totalScore += VADER_LEXICON[char];
+        }
+      }
+
+      // VADER Normalization Formula
+      const alpha = 15;
+      const compound = totalScore / Math.sqrt((totalScore * totalScore) + alpha);
+      return Math.max(-1, Math.min(1, compound));
+    }
+
+    // Classify Compound Score into Positive, Negative, Neutral
+    function classifySentiment(score) {
+      if (score >= 0.05) return "Positive";
+      if (score <= -0.05) return "Negative";
+      return "Neutral";
+    }
+
+    // Emoji Regex / Code Point Range Detection
+    function isEmoji(char) {
+      const code = char.codePointAt(0);
+      const ranges = [
+        [0x1F300, 0x1F5FF], [0x1F600, 0x1F64F],
+        [0x1F680, 0x1F6FF], [0x1F900, 0x1F9FF],
+        [0x2600, 0x26FF],   [0x2700, 0x27BF]
+      ];
+      return ranges.some(([start, end]) => code >= start && code <= end);
+    }
+
+    const state = {
+      activeSpeaker: 'p1', // 'p1' or 'p2'
+      p1: { count: 0, totalScore: 0, pos: 0, neg: 0, neu: 0, words: {}, emojis: {} },
+      p2: { count: 0, totalScore: 0, pos: 0, neg: 0, neu: 0, words: {}, emojis: {} },
+      messages: [] // Array of { id, person, text, score, label }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+
+      const chatFeed = document.getElementById('chat-feed');
+      const chatForm = document.getElementById('chat-form');
+      const chatInput = document.getElementById('chat-input');
+      const sendBtn = document.getElementById('send-btn');
+      const toggleP1 = document.getElementById('toggle-p1');
+      const toggleP2 = document.getElementById('toggle-p2');
+      const btnClear = document.getElementById('btn-clear-chat');
+      const btnExport = document.getElementById('btn-export-txt');
+      const emptyState = document.getElementById('empty-chat-state');
+
+      // Toggle Speaker Selection
+      function setSpeaker(speaker) {
+        state.activeSpeaker = speaker;
+        if (speaker === 'p1') {
+          toggleP1.className = 'speaker-toggle px-3 py-1 rounded-lg font-medium transition flex items-center space-x-1.5 bg-blue-600 text-white shadow';
+          toggleP2.className = 'speaker-toggle px-3 py-1 rounded-lg font-medium transition flex items-center space-x-1.5 text-slate-400 hover:text-slate-200';
+          chatInput.placeholder = 'Type message as Person 1...';
+          sendBtn.className = 'bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl font-medium transition flex items-center justify-center shadow-lg shadow-blue-600/20';
+        } else {
+          toggleP2.className = 'speaker-toggle px-3 py-1 rounded-lg font-medium transition flex items-center space-x-1.5 bg-pink-600 text-white shadow';
+          toggleP1.className = 'speaker-toggle px-3 py-1 rounded-lg font-medium transition flex items-center space-x-1.5 text-slate-400 hover:text-slate-200';
+          chatInput.placeholder = 'Type message as Person 2...';
+          sendBtn.className = 'bg-pink-600 hover:bg-pink-500 text-white p-2.5 rounded-xl font-medium transition flex items-center justify-center shadow-lg shadow-pink-600/20';
+        }
+      }
+
+      toggleP1.addEventListener('click', () => setSpeaker('p1'));
+      toggleP2.addEventListener('click', () => setSpeaker('p2'));
+
+      // Quick Emoji Insert
+      document.querySelectorAll('.emoji-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          chatInput.value += btn.textContent;
+          chatInput.focus();
+        });
+      });
+
+      chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        if (emptyState) emptyState.remove();
+
+        // Calculate Sentiment
+        const score = calculateVaderScore(text);
+        const label = classifySentiment(score);
+        const personKey = state.activeSpeaker;
+        const personName = personKey === 'p1' ? 'Person 1' : 'Person 2';
+
+        // Update Person Metrics
+        const target = state[personKey];
+        target.count++;
+        target.totalScore += score;
+        if (label === 'Positive') target.pos++;
+        else if (label === 'Negative') target.neg++;
+        else target.neu++;
+
+        // Update Frequency Dictionaries
+        updateFrequencies(text, target.words, target.emojis);
+
+        // Record Message
+        const msgObj = { id: Date.now(), person: personName, key: personKey, text, score, label };
+        state.messages.push(msgObj);
+
+        // Render Message Bubble
+        renderMessageBubble(msgObj);
+
+        // Reset Input
+        chatInput.value = '';
+
+        // Update Stats Dashboard
+        updateDashboardUI();
+      });
+
+      // Update Frequency Counters
+      function updateFrequencies(text, wordDict, emojiDict) {
+        // Words
+        const words = text.split(/\s+/);
+        words.forEach(rawWord => {
+          const clean = rawWord.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").toLowerCase();
+          if (clean && !isEmoji(clean)) {
+            wordDict[clean] = (wordDict[clean] || 0) + 1;
+          }
+        });
+
+        // Emojis
+        for (const char of text) {
+          if (isEmoji(char)) {
+            emojiDict[char] = (emojiDict[char] || 0) + 1;
+          }
+        }
+      }
+
+      function renderMessageBubble(msg) {
+        const isP1 = msg.key === 'p1';
+        const bubble = document.createElement('div');
+        bubble.className = `flex flex-col ${isP1 ? 'items-start' : 'items-end'} transition-all duration-200`;
+
+        let badgeColor = 'bg-slate-800 text-slate-300 border-slate-700';
+        if (msg.label === 'Positive') badgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+        if (msg.label === 'Negative') badgeColor = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+
+        bubble.innerHTML = `
+          <div class="flex items-center space-x-1.5 mb-1 text-[11px] text-slate-400">
+            <span class="font-medium ${isP1 ? 'text-blue-400' : 'text-pink-400'}">${msg.person}</span>
+            <span>•</span>
+            <span class="border px-1.5 py-0.2 rounded ${badgeColor} font-mono">${msg.label} (${msg.score.toFixed(3)})</span>
+          </div>
+          <div class="max-w-[85%] px-4 py-2.5 rounded-2xl text-sm shadow ${
+            isP1 
+              ? 'bg-blue-600/90 text-white rounded-tl-none border border-blue-500/30' 
+              : 'bg-slate-800 text-slate-100 rounded-tr-none border border-slate-700/80'
+          }">
+            ${escapeHtml(msg.text)}
+          </div>
+        `;
+
+        chatFeed.appendChild(bubble);
+        chatFeed.scrollTop = chatFeed.scrollHeight;
+      }
+
+      function escapeHtml(str) {
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+
+      function updateDashboardUI() {
+        // Total Messages
+        document.getElementById('stat-total-messages').textContent = state.p1.count + state.p2.count;
+        document.getElementById('stat-p1-count').textContent = state.p1.count;
+        document.getElementById('stat-p2-count').textContent = state.p2.count;
+
+        // P1 Stats
+        const avg1 = state.p1.count > 0 ? state.p1.totalScore / state.p1.count : 0;
+        document.getElementById('stat-p1-score').textContent = avg1.toFixed(3);
+        document.getElementById('stat-p1-sentiment').textContent = classifySentiment(avg1);
+        document.getElementById('stat-p1-pos').textContent = state.p1.pos;
+        document.getElementById('stat-p1-neg').textContent = state.p1.neg;
+        document.getElementById('stat-p1-neu').textContent = state.p1.neu;
+
+        // P2 Stats
+        const avg2 = state.p2.count > 0 ? state.p2.totalScore / state.p2.count : 0;
+        document.getElementById('stat-p2-score').textContent = avg2.toFixed(3);
+        document.getElementById('stat-p2-sentiment').textContent = classifySentiment(avg2);
+        document.getElementById('stat-p2-pos').textContent = state.p2.pos;
+        document.getElementById('stat-p2-neg').textContent = state.p2.neg;
+        document.getElementById('stat-p2-neu').textContent = state.p2.neu;
+
+        // Frequencies - Words
+        const topW1 = findMostCommon(state.p1.words);
+        document.getElementById('top-word-p1').textContent = topW1.key;
+        document.getElementById('top-word-p1-count').textContent = `${topW1.count} times`;
+
+        const topW2 = findMostCommon(state.p2.words);
+        document.getElementById('top-word-p2').textContent = topW2.key;
+        document.getElementById('top-word-p2-count').textContent = `${topW2.count} times`;
+
+        const combinedWords = combineDicts(state.p1.words, state.p2.words);
+        const topWAll = findMostCommon(combinedWords);
+        document.getElementById('top-word-all').textContent = topWAll.key;
+        document.getElementById('top-word-all-count').textContent = `${topWAll.count} times`;
+
+        // Frequencies - Emojis
+        const topE1 = findMostCommon(state.p1.emojis);
+        document.getElementById('top-emoji-p1').textContent = topE1.key;
+        document.getElementById('top-emoji-p1-count').textContent = `(${topE1.count})`;
+
+        const topE2 = findMostCommon(state.p2.emojis);
+        document.getElementById('top-emoji-p2').textContent = topE2.key;
+        document.getElementById('top-emoji-p2-count').textContent = `(${topE2.count})`;
+
+        const combinedEmojis = combineDicts(state.p1.emojis, state.p2.emojis);
+        const topEAll = findMostCommon(combinedEmojis);
+        document.getElementById('top-emoji-all').textContent = topEAll.key;
+        document.getElementById('top-emoji-all-count').textContent = `(${topEAll.count})`;
+
+        // Live Transcript Preview
+        generateTranscriptText();
+      }
+
+      function findMostCommon(dict) {
+        let bestKey = "None";
+        let bestCount = 0;
+        for (const key in dict) {
+          if (dict[key] > bestCount) {
+            bestCount = dict[key];
+            bestKey = key;
+          }
+        }
+        return { key: bestKey, count: bestCount };
+      }
+
+      function combineDicts(d1, d2) {
+        const res = { ...d1 };
+        for (const key in d2) {
+          res[key] = (res[key] || 0) + d2[key];
+        }
+        return res;
+      }
+
+      function generateTranscriptText() {
+        const avg1 = state.p1.count > 0 ? state.p1.totalScore / state.p1.count : 0;
+        const avg2 = state.p2.count > 0 ? state.p2.totalScore / state.p2.count : 0;
+
+        const topW1 = findMostCommon(state.p1.words);
+        const topW2 = findMostCommon(state.p2.words);
+        const topE1 = findMostCommon(state.p1.emojis);
+        const topE2 = findMostCommon(state.p2.emojis);
+
+        const combinedWords = combineDicts(state.p1.words, state.p2.words);
+        const combinedEmojis = combineDicts(state.p1.emojis, state.p2.emojis);
+        const topWAll = findMostCommon(combinedWords);
+        const topEAll = findMostCommon(combinedEmojis);
+
+        let txt = "===== CONVERSATION TRANSCRIPT =====\n\n";
+        state.messages.forEach(m => {
+          txt += `${m.person}: ${m.text}\n`;
+        });
+
+        txt += "\n===== CONVERSATION STATISTICS =====\n\n";
+        txt += `Person 1\n`;
+        txt += `Messages : ${state.p1.count}\n`;
+        txt += `Average Score : ${avg1.toFixed(3)}\n`;
+        txt += `Overall : ${classifySentiment(avg1)}\n`;
+        txt += `Positive Messages : ${state.p1.pos}\n`;
+        txt += `Negative Messages : ${state.p1.neg}\n`;
+        txt += `Neutral Messages : ${state.p1.neu}\n`;
+        txt += `Most Used Word : ${topW1.key} (${topW1.count} times)\n`;
+        txt += `Most Used Emoji : ${topE1.key} (${topE1.count} times)\n\n`;
+
+        txt += `Person 2\n`;
+        txt += `Messages : ${state.p2.count}\n`;
+        txt += `Average Score : ${avg2.toFixed(3)}\n`;
+        txt += `Overall : ${classifySentiment(avg2)}\n`;
+        txt += `Positive Messages : ${state.p2.pos}\n`;
+        txt += `Negative Messages : ${state.p2.neg}\n`;
+        txt += `Neutral Messages : ${state.p2.neu}\n`;
+        txt += `Most Used Word : ${topW2.key} (${topW2.count} times)\n`;
+        txt += `Most Used Emoji : ${topE2.key} (${topE2.count} times)\n\n`;
+
+        txt += `Overall\n`;
+        txt += `Total Messages : ${state.p1.count + state.p2.count}\n`;
+        txt += `Most Used Word Overall : ${topWAll.key} (${topWAll.count} times)\n`;
+        txt += `Most Used Emoji Overall : ${topEAll.key} (${topEAll.count} times)\n`;
+
+        document.getElementById('raw-transcript-view').value = txt;
+        return txt;
+      }
+
+      // Export Download
+      btnExport.addEventListener('click', () => {
+        const content = generateTranscriptText();
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transcript_${Date.now()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+
+      // Reset All
+      btnClear.addEventListener('click', () => {
+        state.p1 = { count: 0, totalScore: 0, pos: 0, neg: 0, neu: 0, words: {}, emojis: {} };
+        state.p2 = { count: 0, totalScore: 0, pos: 0, neg: 0, neu: 0, words: {}, emojis: {} };
+        state.messages = [];
+        chatFeed.innerHTML = `
+          <div id="empty-chat-state" class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500">
+            <div class="w-12 h-12 rounded-full bg-slate-800/80 flex items-center justify-center mb-3">
+              <i data-lucide="message-square" class="w-6 h-6 text-slate-400"></i>
+            </div>
+            <p class="text-sm font-medium text-slate-400">No messages yet</p>
+            <p class="text-xs text-slate-500 max-w-xs mt-1">Start typing as Person 1 or Person 2 to compute live VADER sentiment scores!</p>
+          </div>
+        `;
+        lucide.createIcons();
+        updateDashboardUI();
+      });
+
+    });
+  </script>
+</body>
+</html>
