@@ -1,4 +1,4 @@
-# sentiment_analyzer# 💬 Sentiment Analytics & Dual-Chat Web App
+# 💬 Sentiment Analytics & Dual-Chat Web App
 
 A lightweight, real-time sentiment analysis web application designed to evaluate dual-participant text conversations using a customized **VADER Sentiment Analysis engine** built natively in JavaScript.
 
