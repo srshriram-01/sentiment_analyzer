@@ -423,22 +423,32 @@ Transcript and statistics preview will appear here...
 
     // Calculate VADER Sentiment Compound Score
     function calculateVaderScore(message) {
-      if (!message || message.trim() === '') return 0;
-      
-      const words = message.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(/\s+/);
-      let totalScore = 0;
+  if (!message || !message.trim()) return 0;
 
-      words.forEach(word => {
-        if (VADER_LEXICON[word]) {
-          totalScore += VADER_LEXICON[word];
-        }
-      });
+  // Strips standard punctuation while keeping words and emojis intact
+  const words = message
+    .toLowerCase()
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
+    .trim()
+    .split(/\s+/);
 
-      // Normalize total score using VADER compound score formula
-      const alpha = 15;
-      const compound = totalScore / Math.sqrt(Math.pow(totalScore, 2) + alpha);
-      return compound;
+  let totalScore = 0;
+
+  words.forEach(word => {
+    // Explicitly check if the KEY exists (handles 0.0 correctly)
+    if (Object.prototype.hasOwnProperty.call(VADER_LEXICON, word)) {
+      totalScore += VADER_LEXICON[word];
     }
+  });
+
+  if (totalScore === 0) return 0;
+
+  // VADER Normalization Formula
+  const alpha = 15;
+  const compound = totalScore / Math.sqrt(Math.pow(totalScore, 2) + alpha);
+  
+  return parseFloat(compound.toFixed(3));
+}
   </script>
 
     // Emoji Regex / Code Point Range Detection
