@@ -422,33 +422,32 @@ Transcript and statistics preview will appear here...
     };
 
     // Calculate VADER Sentiment Compound Score
-    function calculateVaderScore(message) {
-  if (!message || !message.trim()) return 0;
+   function calculateVaderScore(message) {
+    if (!message || !message.trim()) return 0;
 
-  // Strips standard punctuation while keeping words and emojis intact
-  const words = message
-    .toLowerCase()
-    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
-    .trim()
-    .split(/\s+/);
+    // Tokenize cleanly without stripping internal word characters
+    const words = message
+        .toLowerCase()
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
+        .trim()
+        .split(/\s+/);
 
-  let totalScore = 0;
+    let totalScore = 0;
+    let matches = 0;
 
-  words.forEach(word => {
-    // Explicitly check if the KEY exists (handles 0.0 correctly)
-    if (Object.prototype.hasOwnProperty.call(VADER_LEXICON, word)) {
-      totalScore += VADER_LEXICON[word];
-    }
-  });
+    words.forEach(word => {
+        if (Object.prototype.hasOwnProperty.call(VADER_LEXICON, word)) {
+            totalScore += VADER_LEXICON[word];
+            matches++;
+        }
+    });
 
-  if (totalScore === 0) return 0;
+    if (matches === 0 || totalScore === 0) return 0;
 
-  // VADER Normalization Formula
-  const alpha = 15;
-  const compound = totalScore / Math.sqrt(Math.pow(totalScore, 2) + alpha);
-  
-  return parseFloat(compound.toFixed(3));
-}
+    // Standard VADER compound formula
+    const alpha = 15;
+    const compound = totalScore / Math.sqrt(Math.pow(totalScore, 2) + alpha);
+    return parseFloat(compound.toFixed(3));
   </script>
 
     // Emoji Regex / Code Point Range Detection
