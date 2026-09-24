@@ -422,7 +422,7 @@ Transcript and statistics preview will appear here...
     };
 
     // Calculate VADER Sentiment Compound Score
-   function calculateVaderScore(message) {
+    function calculateVaderScore(message) {
     if (!message || !message.trim()) return 0;
 
     // Tokenize cleanly without stripping internal word characters
@@ -448,6 +448,7 @@ Transcript and statistics preview will appear here...
     const alpha = 15;
     const compound = totalScore / Math.sqrt(Math.pow(totalScore, 2) + alpha);
     return parseFloat(compound.toFixed(3));
+}
   </script>
 
     // Emoji Regex / Code Point Range Detection
