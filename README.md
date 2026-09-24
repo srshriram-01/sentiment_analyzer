@@ -9,7 +9,7 @@ A lightweight, real-time sentiment analysis web application designed to evaluate
 ## ✨ Features
 
 * **Real-Time Sentiment Scoring:** Evaluates text input instantly and calculates compound scores ranging from `-1.0` (Highly Negative) to `+1.0` (Highly Positive).
-* **Gen Z & Modern Slang Vocabulary:** Custom-built dictionary extensions incorporating modern internet lingo, abbreviations, and context swaps (e.g., *cooked*, *cooking*, *slay*, *mid*, *bussin*, *fr*, *no cap*).
+* **Gen Z & Modern Slang Vocabulary:** Custom-built dictionary extensions incorporating modern internet lingo, abbreviations, and context swaps (e.g., *cooked*, *cooking*, *slay*, *mid*,*fr*, *no cap*).
 * **Dual-Participant Simulation:** Alternate between Person 1 and Person 2 to simulate real-time chat interactions.
 * **Frequency Analytics:** Automatically tracks and displays most used words and emojis for both participants individually and combined.
 * **Transcript & Stats Export:** Generates downloadable text transcripts along with summary statistics.
