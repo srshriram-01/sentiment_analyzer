@@ -312,80 +312,113 @@ Transcript and statistics preview will appear here...
 
   <script>
     /* Lightweight Client-side VADER Lexicon Implementation */
-    const VADER_LEXICON = {// Paste these inside your VADER_LEXICON object in index.html:
+    const VADER_LEXICON = {
+      // --- Greetings & Foundations ---
+      "hello": 0.5,
+      "hi": 0.5,
+      "yo": 0.8,
+      "alr": 1.5,
+      "thanks": 1.9,
+      "thank": 1.8,
 
       // --- High Positive / Praise ---
-      "ate": 2.7,          // "She ate that up"
-      "slay": 3.0,         // "Slay!"
-      "fire": 2.8,         // "That track is fire"
-      "goated": 3.2,       // "GOAT status"
-      "vamos": 2.8,       // vamoss
-      "based": 2.0,        // "Super based opinion"
-      "valid": 1.8,        // "That's valid"
-      "w": 2.2,            // "Big W"
-      "peak": 2.0,         // "Peak cinema"
-      "aura": 1.5,         // "Infinite aura"
+      "ate": 2.8,
+      "slay": 3.0,
+      "slayed": 3.0,
+      "fire": 2.8,
+      "goated": 3.2,
+      "vamos": 2.8,
+      "based": 2.0,
+      "valid": 1.8,
+      "w": 2.2,
+      "peak": 2.0,
+      "aura": 1.5,
       "lesssgo": 2.2,
-      
+      "cool": 2.3,
+      "cooking": 2.5,
+      "cook": 1.2,
+      "cold": 2.2,
+      "sick": 2.0,
+      "dirty": 1.8,
+      "nasty": 1.8,
+      "tough": 2.2,
+      "siu": 1.1,
+      "great": 3.1,
+      "good": 1.9,
+      "awesome": 3.1,
+      "amazing": 2.8,
+      "love": 3.2,
+      "excellent": 2.7,
+      "happy": 2.7,
+      "best": 3.2,
+      "nice": 1.8,
+      "fantastic": 2.6,
+      "wonderful": 2.7,
+      "enjoy": 2.2,
+      "perfect": 2.7,
+
+      // --- Modern Abbreviations & Neutral Fillers ---
+      "fr": 1.2,
+      "ngl": 0.4,
+      "tbh": 0.4,
+      "iykyk": 1.0,
+      "nvm": -0.5,
+      "idk": -0.6,
 
       // --- High Negative / Disapproval ---
-      "l": -2.2,           // "Big L"
-      "mid": -2.0,         // "That movie was mid"
-      "cringe": -2.5,      // "So cringe"
-      "cooked": -2.8,      // "Bro is cooked"
-      "cap": -2.0,         // "That's cap"
-      "flop": -2.4,        // "Total flop"
-      "cheeks": -2.0,      // "Game is cheeks"
-      "sus": -1.8,         // "Super sus"
-      "unhinged": -2.0,    // "Unhinged behavior"
-      "glazing": -0.8,     // "Stop glazing"
+      "l": -2.2,
+      "mid": -2.0,
+      "cringe": -2.5,
+      "cooked": -2.8,
+      "cap": -2.0,
+      "flop": -2.4,
+      "cheeks": -2.0,
+      "sus": -1.8,
+      "unhinged": -2.0,
+      "glazing": -0.8,
+      "smh": -1.8,
+      "tf": -2.0,
+      "wtf": -2.5,
+      "washed": -2.2,
+      "fraud": -2.5,
+      "ghosted": -2.0,
+      "rent-free": -1.5,
+      "salty": -1.8,
+      "ratio": -2.2,
+      "brick": -2.0,
+      "nah": -1.8,
+      "shi": -2.0,
+      "bad": -2.5,
+      "terrible": -3.0,
+      "hate": -2.7,
+      "horrible": -2.5,
+      "awful": -2.0,
+      "sad": -2.1,
+      "worst": -3.1,
+      "disappointed": -2.3,
+      "angry": -2.3,
+      "poor": -1.4,
+      "boring": -1.3,
+      "annoying": -1.9,
+      "fail": -2.5,
+      "useless": -2.1,
+      "pain": -2.3,
 
-      // --- Modern Abbreviations & Slang ---
-      "fr": 1.2,           // "For real"
-      "ngl": 0.4,          // "Not gonna lie"
-      "tbh": 0.4,          // "To be honest"
-      "iykyk": 1.0,        // "If you know you know"
-      "smh": -1.8,         // "Shaking my head"
-      "tf": -2.0,           // "What the..."
-      "alr": 2.6,
-      // --- Cooking / Cooked Contexts ---
-      "cooking": 2.5,        // "He is cooking right now" (Doing great)
-      "got cooked": -2.8,        // "Bro is cooked" / "Got cooked" (Doomed/Ruined)
-      "cook": 1.2,          // "Let him cook" (Give him space to excel)
-      "cooked":2.0,
+      // --- Structural Fixes (Keep Neutral) ---
+      "how": 0.0,
+      "what": 0.0,
+      "all": 0.0,
 
-      // --- Other Context Swaps & Modern Slang ---
-      "ate": 2.8,            // "She ate that" (+ve) vs "eaten"
-      "slayed": 3.0,         // "She slayed" (+ve)
-      "cold": 2.2,           // "That clip was cold" (+ve / impressive)
-      "sick": 2.0,           // "That trick was sick" (+ve)
-      "dirty": 1.8,          // "That crossover was dirty" (+ve)
-      "nasty": 1.8,          // "Nasty dunk" (+ve)
-      "tough": 2.2,          // "That fit is tough" (+ve)
-
-      // --- Disapproval / Defeat ---
-      "washed": -2.2,        // "He's washed" (-ve / past his prime)
-      "cooked": -2.8,        // "We are cooked" (-ve)
-      "fraud": -2.5,         // "Total fraud" (-ve)
-      "ghosted": -2.0,       // "Got ghosted" (-ve)
-      "rent-free": -1.5,     // "Living rent-free" (-ve / obsessed)
-      "salty": -1.8,         // "Why are you salty?" (-ve)
-      "ratio": -2.2,         // "Get ratioed" (-ve)
-      "brick": -2.0,          // "Threw a brick" (-ve / missed badly)
-      "nah":-1.8,
-      "shi":-2.0,
-      'great': 3.1, 'good': 1.9,'yo':0.8, 'awesome': 3.1, 'amazing': 2.8, 'love': 3.2,
-      'excellent': 2.7, 'happy': 2.7, 'best': 3.2, 'nice': 1.8, 'fantastic': 2.6,
-      'wonderful': 2.7, 'enjoy': 2.2, 'perfect': 2.7, 'thanks': 1.9, 'thank': 1.8,
-      'bad': -2.5, 'terrible': -3.0, 'hate': -2.7, 'horrible': -2.5, 'awful': -2.0,
-      'sad': -2.1, 'worst': -3.1, 'disappointed': -2.3, 'angry': -2.3, 'poor': -1.4,
-      'boring': -1.3, 'annoying': -1.9, 'fail': -2.5, 'useless': -2.1, 'pain': -2.3,
-      // balancing og vader as it is inacc or adding new
-      'how': -2.1,'all': 3.0,'nvm': -0.5,'idk': -0.6,'siu': 1.1,'what': -2.5,'wtf':-2.5,'cool': 2.3,
-
-        
-      // Emoji lexicon approximations      '😊': 2.0, '😍': 3.0, '🔥': 2.2, '🎉': 2.5, '👍': 1.8,
-      '😢': -2.2, '😡': -3.0, '👎': -1.8, '💩': -2.0
+      // --- Emoji Lexicon Approximations ---
+      '😊': 2.0,
+      '😍': 3.0,
+      '🔥': 2.2,
+      '🎉': 2.5,
+      '👍': 1.8,
+      '😢': -2.2,
+      '😡': -3.0,
+      '👎': -1.8,
+      '💩': -2.0
     };
 
     // Calculate VADER Sentiment Compound Score
@@ -401,25 +434,12 @@ Transcript and statistics preview will appear here...
         }
       });
 
-      // Also check emojis directly in message
-      for (const char of message) {
-        if (VADER_LEXICON[char]) {
-          totalScore += VADER_LEXICON[char];
-        }
-      }
-
-      // VADER Normalization Formula
+      // Normalize total score using VADER compound score formula
       const alpha = 15;
-      const compound = totalScore / Math.sqrt((totalScore * totalScore) + alpha);
-      return Math.max(-1, Math.min(1, compound));
+      const compound = totalScore / Math.sqrt(Math.pow(totalScore, 2) + alpha);
+      return compound;
     }
-
-    // Classify Compound Score into Positive, Negative, Neutral
-    function classifySentiment(score) {
-      if (score >= 0.05) return "Positive";
-      if (score <= -0.05) return "Negative";
-      return "Neutral";
-    }
+  </script>
 
     // Emoji Regex / Code Point Range Detection
     function isEmoji(char) {
